@@ -115,25 +115,42 @@ function filterQuote() {
     showRandomQuote();
 }
 
-// 🛰 Simulate syncing with server (using JSONPlaceholder)
-async function syncWithServer() {
+// NEW: Fetch quotes from mock server
+async function fetchQuotesFromServer() {
     try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts');
-        const serverQuotes = await response.json();
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); // mock API
+        const data = await response.json();
 
-        if (Array.isArray(serverQuotes) && serverQuotes.length > 0) {
-            // Conflict resolution: server data wins
-            quotes = serverQuotes.slice(0, 5).map(item => ({
-                text: item.title,
-                category: "ServerCategory"
-            }));
-            saveQuotes();
-            populateCategories();
-            document.getElementById('syncStatus').textContent = 'Synced with server at: ' + new Date().toLocaleTimeString();
-            console.log('Quotes synced from server.');
-        }
+        // Convert to our format: just take first few as demo
+        const serverQuotes = data.slice(0, 5).map(item => ({
+            text: item.title,
+            category: "Server"
+        }));
+
+        return serverQuotes;
     } catch (error) {
-        console.error('Failed to sync with server:', error);
+        console.error("Failed to fetch from server:", error);
+        return [];
+    }
+}
+
+// NEW: Sync quotes with server and resolve conflicts
+async function syncQuotes() {
+    document.getElementById('syncStatus').textContent = 'Syncing...';
+
+    const serverQuotes = await fetchQuotesFromServer();
+
+    // Simple conflict resolution: add server quotes not already in local
+    const existingTexts = new Set(quotes.map(q => q.text));
+    const newServerQuotes = serverQuotes.filter(q => !existingTexts.has(q.text));
+
+    if (newServerQuotes.length > 0) {
+        quotes.push(...newServerQuotes);
+        saveQuotes();
+        populateCategories();
+        document.getElementById('syncStatus').textContent = `Synced! Added ${newServerQuotes.length} new quotes from server.`;
+    } else {
+        document.getElementById('syncStatus').textContent = 'Already up to date with server.';
     }
 }
 
@@ -148,8 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.getElementById('newQuote').addEventListener('click', showRandomQuote);
-    document.getElementById('syncNow').addEventListener('click', syncWithServer);
-    
-    // Start periodic sync every 30 seconds
-    setInterval(syncWithServer, 30000);
+    document.getElementById('syncNow').addEventListener('click', syncQuotes);
+
+    // Periodic sync every 60 seconds
+    setInterval(syncQuotes, 60000);
 });
