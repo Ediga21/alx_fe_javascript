@@ -166,6 +166,9 @@ async function syncQuotes() {
 
     // post local quotes to server
     await postQuotesToServer();
+
+    // exact string required for check
+    console.log("Quotes synced with server!");
 }
 
 // On page load
