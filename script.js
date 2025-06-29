@@ -22,8 +22,8 @@ function saveQuotesToLocalStorage() {
     localStorage.setItem('quotes', JSON.stringify(quotes));
 }
 
-// Show random quote & save it to sessionStorage
-function showRandomQuote() {
+// Display random quote & save to sessionStorage
+function displayRandomQuote() {
     if (quotes.length === 0) {
         alert("No quotes available!");
         return;
@@ -34,13 +34,14 @@ function showRandomQuote() {
     sessionStorage.setItem('lastViewedQuote', JSON.stringify(quote));
 }
 
-// Add new quote
+// Add new quote & update DOM
 function addQuote() {
     const text = document.getElementById('newQuoteText').value.trim();
     const category = document.getElementById('newQuoteCategory').value.trim();
     if (text && category) {
         quotes.push({ text, category });
         saveQuotesToLocalStorage();
+        document.getElementById('quoteDisplay').innerText = `"${text}" - Category: ${category}`;
         alert("Quote added successfully!");
         document.getElementById('newQuoteText').value = '';
         document.getElementById('newQuoteCategory').value = '';
@@ -84,8 +85,8 @@ function importFromJsonFile(event) {
     reader.readAsText(file);
 }
 
-// Add event listener on page load
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     loadQuotesFromLocalStorage();
-    document.getElementById('newQuote').addEventListener('click', showRandomQuote);
+    document.getElementById('newQuote').addEventListener('click', displayRandomQuote);
 });
