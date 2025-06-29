@@ -115,43 +115,57 @@ function filterQuote() {
     showRandomQuote();
 }
 
-// NEW: Fetch quotes from mock server
+// Fetch quotes from server (mock)
 async function fetchQuotesFromServer() {
     try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); // mock API
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts'); // mock GET
         const data = await response.json();
-
-        // Convert to our format: just take first few as demo
-        const serverQuotes = data.slice(0, 5).map(item => ({
+        return data.slice(0, 5).map(item => ({
             text: item.title,
             category: "Server"
         }));
-
-        return serverQuotes;
     } catch (error) {
-        console.error("Failed to fetch from server:", error);
+        console.error("Fetch failed:", error);
         return [];
     }
 }
 
-// NEW: Sync quotes with server and resolve conflicts
+// Post local quotes to server (mock POST)
+async function postQuotesToServer() {
+    try {
+        await fetch('https://jsonplaceholder.typicode.com/posts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quotes)
+        });
+    } catch (error) {
+        console.error("Post failed:", error);
+    }
+}
+
+// Sync quotes: fetch from server, post local, merge & resolve conflicts
 async function syncQuotes() {
-    document.getElementById('syncStatus').textContent = 'Syncing...';
+    const statusEl = document.getElementById('syncStatus');
+    statusEl.textContent = "Syncing...";
 
     const serverQuotes = await fetchQuotesFromServer();
 
-    // Simple conflict resolution: add server quotes not already in local
+    // conflict resolution: add server quotes not in local
     const existingTexts = new Set(quotes.map(q => q.text));
     const newServerQuotes = serverQuotes.filter(q => !existingTexts.has(q.text));
-
     if (newServerQuotes.length > 0) {
         quotes.push(...newServerQuotes);
         saveQuotes();
         populateCategories();
-        document.getElementById('syncStatus').textContent = `Synced! Added ${newServerQuotes.length} new quotes from server.`;
+        statusEl.textContent = `Synced! Added ${newServerQuotes.length} new quotes from server.`;
     } else {
-        document.getElementById('syncStatus').textContent = 'Already up to date with server.';
+        statusEl.textContent = "Already up to date with server.";
     }
+
+    // post local quotes to server
+    await postQuotesToServer();
 }
 
 // On page load
