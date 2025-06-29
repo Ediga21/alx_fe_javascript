@@ -35,7 +35,7 @@ function showRandomQuote() {
 
     const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
     const quote = filteredQuotes[randomIndex];
-    document.getElementById('quoteDisplay').innerText = `"${quote.text}" - Category: ${quote.category}`;
+    document.getElementById('quoteDisplay').textContent = `"${quote.text}" - Category: ${quote.category}`;
     sessionStorage.setItem('lastViewedQuote', JSON.stringify(quote));
 }
 
@@ -46,7 +46,7 @@ function addQuote() {
     if (text && category) {
         quotes.push({ text, category });
         saveQuotes();
-        populateCategories(); // refresh dropdown if new category
+        populateCategories();
         alert("Quote added successfully!");
         document.getElementById('newQuoteText').value = '';
         document.getElementById('newQuoteCategory').value = '';
@@ -94,27 +94,22 @@ function importFromJsonFile(event) {
 // Populate category dropdown dynamically
 function populateCategories() {
     const dropdown = document.getElementById('categoryFilter');
-    // remember selected category before repopulating
     const selected = dropdown.value;
-
-    // clear all except first "all"
     dropdown.innerHTML = '<option value="all">All Categories</option>';
 
-    // get unique categories
     const categories = [...new Set(quotes.map(q => q.category))];
     categories.forEach(cat => {
         const option = document.createElement('option');
         option.value = cat;
-        option.innerText = cat;
+        option.textContent = cat;
         dropdown.appendChild(option);
     });
 
-    // restore previous selection if possible
     dropdown.value = selected;
 }
 
 // Filter quotes by selected category and show one
-function filterQuotes() {
+function filterQuote() {
     const selectedCategory = document.getElementById('categoryFilter').value;
     localStorage.setItem('lastSelectedCategory', selectedCategory);
     showRandomQuote();
@@ -125,7 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadQuotes();
     populateCategories();
 
-    // Restore last selected category
     const savedCategory = localStorage.getItem('lastSelectedCategory');
     if (savedCategory) {
         document.getElementById('categoryFilter').value = savedCategory;
